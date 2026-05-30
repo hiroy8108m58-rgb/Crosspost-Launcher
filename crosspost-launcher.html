@@ -1,0 +1,698 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Crosspost Launcher</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  /* ===== デザイントークン ===== */
+  :root{
+    --bg:        #14110e;
+    --bg-glow:   #1f1a14;
+    --surface:   #1d1916;
+    --surface-2: #211c18;
+    --border:    #35302a;
+    --border-hi: #4a443b;
+    --text:      #ece6dc;
+    --muted:     #8f8678;
+    --faint:     #5f594f;
+    --accent:    #e8b04b;   /* 操作可能・アクティブ */
+    --accent-dim:#9c7a37;
+    --danger:    #e0693c;   /* 上限超過 */
+    --ok:        #8fb469;   /* コピー成功など */
+  }
+
+  *{ box-sizing:border-box; margin:0; padding:0; }
+
+  html,body{ height:100%; }
+
+  body{
+    background:
+      radial-gradient(120% 80% at 50% -10%, var(--bg-glow) 0%, var(--bg) 55%);
+    color:var(--text);
+    font-family:'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+    min-height:100dvh;
+    display:flex;
+    align-items:flex-start;
+    justify-content:center;
+    padding:clamp(16px, 4vw, 48px) 16px 64px;
+    -webkit-font-smoothing:antialiased;
+    line-height:1.5;
+  }
+
+  .app{
+    width:100%;
+    max-width:600px;
+    animation:rise .5s cubic-bezier(.2,.7,.2,1) both;
+  }
+  @keyframes rise{ from{ opacity:0; transform:translateY(10px);} to{ opacity:1; transform:none;} }
+
+  /* ===== ヘッダー ===== */
+  header{ margin-bottom:22px; }
+  .title{
+    font-family:'Instrument Serif', Georgia, serif;
+    font-size:clamp(34px, 8vw, 46px);
+    font-weight:400;
+    letter-spacing:.5px;
+    line-height:1.05;
+  }
+  .title em{ color:var(--accent); font-style:italic; }
+  .subtitle{
+    color:var(--muted);
+    font-size:12.5px;
+    margin-top:6px;
+    letter-spacing:.3px;
+  }
+
+  /* ===== 入力エリア ===== */
+  .editor-wrap{
+    position:relative;
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:14px;
+    padding:4px;
+    transition:border-color .2s;
+  }
+  .editor-wrap:focus-within{ border-color:var(--border-hi); }
+
+  textarea{
+    width:100%;
+    min-height:190px;
+    resize:vertical;
+    background:transparent;
+    border:none;
+    outline:none;
+    color:var(--text);
+    font-family:inherit;
+    font-size:16px;          /* iOSで自動ズームしない最小値 */
+    line-height:1.65;
+    padding:16px;
+  }
+  textarea::placeholder{ color:var(--faint); }
+
+  /* ===== カウンター ===== */
+  .counters{
+    display:flex;
+    gap:10px;
+    margin:14px 0 18px;
+  }
+  .counter{
+    flex:1;
+    background:var(--surface-2);
+    border:1px solid var(--border);
+    border-radius:11px;
+    padding:11px 13px;
+  }
+  .counter .row{
+    display:flex;
+    justify-content:space-between;
+    align-items:baseline;
+    gap:8px;
+  }
+  .counter .name{ font-size:11px; color:var(--muted); letter-spacing:.4px; }
+  .counter .num{ font-size:15px; font-weight:600; font-variant-numeric:tabular-nums; }
+  .counter .num .lim{ color:var(--faint); font-weight:400; font-size:12px; }
+  .counter .note{ font-size:9.5px; color:var(--faint); margin-top:3px; letter-spacing:.2px; }
+  .bar{
+    height:3px;
+    background:var(--border);
+    border-radius:3px;
+    margin-top:9px;
+    overflow:hidden;
+  }
+  .bar > i{
+    display:block;
+    height:100%;
+    width:0%;
+    background:var(--accent-dim);
+    border-radius:3px;
+    transition:width .15s ease, background .15s ease;
+  }
+  .counter.over .num{ color:var(--danger); }
+  .counter.over .bar > i{ background:var(--danger); }
+
+  /* ===== ボタン ===== */
+  .actions{ display:flex; flex-direction:column; gap:10px; }
+  .open-row{ display:flex; gap:10px; }
+  @media (max-width:430px){ .open-row{ flex-direction:column; } }
+
+  button{
+    font-family:inherit;
+    font-size:14px;
+    font-weight:500;
+    letter-spacing:.3px;
+    color:var(--text);
+    background:var(--surface-2);
+    border:1px solid var(--border-hi);
+    border-radius:11px;
+    padding:14px 16px;
+    cursor:pointer;
+    transition:transform .08s, border-color .2s, background .2s, color .2s;
+    -webkit-tap-highlight-color:transparent;
+  }
+  button:hover{ border-color:var(--accent); color:var(--accent); }
+  button:active{ transform:translateY(1px); }
+
+  .btn-open{ flex:1; }
+  .btn-open .tag{ display:block; font-size:10px; color:var(--muted); margin-top:3px; letter-spacing:.4px; }
+  .btn-open:hover .tag{ color:var(--accent-dim); }
+
+  .btn-copy{ width:100%; }
+  .btn-copy.copied{ border-color:var(--ok); color:var(--ok); }
+
+  .btn-clear{
+    width:100%;
+    background:transparent;
+    border-color:transparent;
+    color:var(--faint);
+    font-size:12px;
+    padding:8px;
+  }
+  .btn-clear:hover{ color:var(--muted); border-color:transparent; }
+
+  /* ===== テンプレート ===== */
+  .template-section{ display:flex; flex-direction:column; gap:8px; margin-top:10px; }
+
+  .template-save-row{ display:flex; gap:8px; }
+
+  .tmpl-input{
+    flex:1;
+    background:var(--surface-2);
+    border:1px solid var(--border-hi);
+    border-radius:11px;
+    padding:13px 14px;
+    color:var(--text);
+    font-family:inherit;
+    font-size:13px;
+    outline:none;
+    transition:border-color .2s;
+  }
+  .tmpl-input:focus{ border-color:var(--accent); }
+  .tmpl-input::placeholder{ color:var(--faint); }
+
+  .btn-tmpl-save{ white-space:nowrap; }
+
+  .tmpl-msg{
+    font-size:11.5px;
+    padding:0 4px;
+    min-height:16px;
+    color:transparent;
+    transition:color .15s;
+  }
+  .tmpl-msg.ok{ color:var(--ok); }
+  .tmpl-msg.err{ color:var(--danger); }
+
+  .btn-tmpl-toggle{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    width:100%;
+    padding:11px 14px;
+    font-size:13px;
+    color:var(--muted);
+    background:transparent;
+    border:1px solid var(--border);
+    border-radius:11px;
+    text-align:left;
+  }
+  .btn-tmpl-toggle:hover{ color:var(--text); border-color:var(--border-hi); }
+
+  .tmpl-badge{
+    background:var(--border);
+    color:var(--muted);
+    font-size:10px;
+    padding:1px 7px;
+    border-radius:20px;
+    font-variant-numeric:tabular-nums;
+  }
+
+  .tmpl-arrow{ margin-left:auto; font-size:10px; color:var(--faint); transition:transform .2s; }
+  .tmpl-arrow.open{ transform:rotate(180deg); }
+
+  .tmpl-list{ display:flex; flex-direction:column; gap:6px; }
+
+  .tmpl-empty{
+    font-size:12px;
+    color:var(--faint);
+    text-align:center;
+    padding:16px;
+  }
+
+  .tmpl-item{
+    background:var(--surface-2);
+    border:1px solid var(--border);
+    border-radius:11px;
+    padding:12px 14px;
+  }
+
+  .tmpl-item-name{
+    font-size:13px;
+    font-weight:600;
+    color:var(--text);
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+  }
+
+  .tmpl-item-preview{
+    font-size:11px;
+    color:var(--faint);
+    margin-top:4px;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+  }
+
+  .tmpl-item-btns{ display:flex; gap:6px; margin-top:10px; }
+
+  .btn-tmpl-load, .btn-tmpl-delete{
+    font-size:12px;
+    padding:7px 12px;
+    border-radius:8px;
+  }
+
+  .btn-tmpl-delete{ color:var(--faint); border-color:var(--border); }
+  .btn-tmpl-delete:hover{ color:var(--danger); border-color:var(--danger); }
+
+  .tmpl-confirm{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    margin-top:10px;
+    font-size:12px;
+    color:var(--muted);
+    flex-wrap:wrap;
+  }
+
+  .tmpl-confirm-btns{ display:flex; gap:6px; }
+
+  .btn-confirm-yes{
+    font-size:12px;
+    padding:6px 11px;
+    border-radius:8px;
+    color:var(--danger);
+    border-color:var(--danger);
+  }
+  .btn-confirm-yes:hover{ background:rgba(224,105,60,.1); color:var(--danger); }
+
+  .btn-confirm-no{
+    font-size:12px;
+    padding:6px 11px;
+    border-radius:8px;
+  }
+
+  /* ===== 注意書き ===== */
+  .foot{
+    margin-top:22px;
+    padding-top:16px;
+    border-top:1px solid var(--border);
+    font-size:11px;
+    color:var(--faint);
+    line-height:1.7;
+  }
+  .foot b{ color:var(--muted); font-weight:500; }
+
+  /* ===== ステータス（aria-live） ===== */
+  .status{
+    position:fixed;
+    left:50%; bottom:22px;
+    transform:translateX(-50%) translateY(20px);
+    background:var(--surface);
+    border:1px solid var(--border-hi);
+    color:var(--text);
+    font-size:13px;
+    padding:10px 18px;
+    border-radius:10px;
+    opacity:0;
+    pointer-events:none;
+    transition:opacity .2s, transform .2s;
+    box-shadow:0 8px 28px rgba(0,0,0,.4);
+  }
+  .status.show{ opacity:1; transform:translateX(-50%) translateY(0); }
+</style>
+</head>
+<body>
+  <main class="app">
+    <header>
+      <h1 class="title">Crosspost <em>Launcher</em></h1>
+      <p class="subtitle">1か所で書く → X / Threads は事前入力で開く・Substack はコピー</p>
+    </header>
+
+    <div class="editor-wrap">
+      <textarea id="text" placeholder="ここに本文を書く…" autofocus></textarea>
+    </div>
+
+    <div class="counters">
+      <div class="counter" id="counter-x">
+        <div class="row">
+          <span class="name">X</span>
+          <span class="num"><span id="x-count">0</span><span class="lim"> / 280</span></span>
+        </div>
+        <div class="note">全角は2文字換算（実質 約140字）</div>
+        <div class="bar"><i id="x-bar"></i></div>
+      </div>
+      <div class="counter" id="counter-th">
+        <div class="row">
+          <span class="name">Threads</span>
+          <span class="num"><span id="th-count">0</span><span class="lim"> / 500</span></span>
+        </div>
+        <div class="note">そのままの文字数</div>
+        <div class="bar"><i id="th-bar"></i></div>
+      </div>
+    </div>
+
+    <div class="actions">
+      <div class="open-row">
+        <button class="btn-open" id="btn-x" type="button">
+          Xを開く
+          <span class="tag">事前入力 → 内容を確認して投稿</span>
+        </button>
+        <button class="btn-open" id="btn-th" type="button">
+          Threadsを開く
+          <span class="tag">事前入力 → 内容を確認して投稿</span>
+        </button>
+      </div>
+      <button class="btn-copy" id="btn-copy" type="button">Substack用にコピー</button>
+      <button class="btn-clear" id="btn-clear" type="button">クリア</button>
+    </div>
+
+    <div class="template-section">
+      <div class="template-save-row">
+        <input type="text" id="tmpl-name" class="tmpl-input" placeholder="テンプレート名…" maxlength="50">
+        <button class="btn-tmpl-save" id="btn-tmpl-save" type="button">保存</button>
+      </div>
+      <div class="tmpl-msg" id="tmpl-msg"></div>
+      <button class="btn-tmpl-toggle" id="btn-tmpl-toggle" type="button">
+        テンプレート一覧<span class="tmpl-badge" id="tmpl-badge">0</span><span class="tmpl-arrow" id="tmpl-arrow">▼</span>
+      </button>
+      <div class="tmpl-list" id="tmpl-list" hidden></div>
+    </div>
+
+    <p class="foot">
+      <b>X</b> / <b>Threads</b> は事前入力までで、最後の投稿ボタンは各サイトで自分で押します（投稿前に確認できます）。
+      <b>Substack</b> はコピー後、Notes に貼り付けて投稿してください。<br>
+      ※ 絵文字は事前入力時にまれに文字化けすることがあります。気になる場合は開いた先で貼り直してください。
+    </p>
+  </main>
+
+  <div class="status" id="status" role="status" aria-live="polite"></div>
+
+<script>
+  // ===== 要素参照 =====
+  const ta       = document.getElementById('text');
+  const xCountEl = document.getElementById('x-count');
+  const thCountEl= document.getElementById('th-count');
+  const xBar     = document.getElementById('x-bar');
+  const thBar    = document.getElementById('th-bar');
+  const xWrap    = document.getElementById('counter-x');
+  const thWrap   = document.getElementById('counter-th');
+  const statusEl = document.getElementById('status');
+
+  const X_LIMIT  = 280;   // 重み付き（全角=2）
+  const TH_LIMIT = 500;   // 文字数そのまま
+
+  // ===== Xの重み付き文字数（全角/CJK系は2、その他は1） =====
+  // X(twitter-text)の weighted length を近似。URLの23字換算は未対応（仕様書に明記）。
+  function isWide(cp){
+    return (
+      (cp>=0x1100 && cp<=0x11FF) ||  // ハングル字母
+      (cp>=0x2E80 && cp<=0x303E) ||  // CJK部首・漢字記号・句読点ほか
+      (cp>=0x3041 && cp<=0x33FF) ||  // ひらがな・カタカナ・CJK記号
+      (cp>=0x3400 && cp<=0x4DBF) ||  // CJK拡張A
+      (cp>=0x4E00 && cp<=0x9FFF) ||  // CJK統合漢字
+      (cp>=0xA000 && cp<=0xA4CF) ||
+      (cp>=0xAC00 && cp<=0xD7A3) ||  // ハングル音節
+      (cp>=0xF900 && cp<=0xFAFF) ||  // CJK互換漢字
+      (cp>=0xFF00 && cp<=0xFFEF) ||  // 全角形
+      (cp>=0x20000 && cp<=0x3FFFF)   // CJK拡張B以降
+    );
+  }
+  function xWeighted(str){
+    let w = 0;
+    for(const ch of str){
+      w += isWide(ch.codePointAt(0)) ? 2 : 1;
+    }
+    return w;
+  }
+  // Threadsはコードポイント数（絵文字・サロゲートペアを1として数える）
+  function codePointLength(str){
+    return [...str].length;
+  }
+
+  // ===== カウンター更新 =====
+  function update(){
+    const t = ta.value;
+    const xw = xWeighted(t);
+    const tl = codePointLength(t);
+
+    xCountEl.textContent  = xw;
+    thCountEl.textContent = tl;
+
+    xBar.style.width  = Math.min(100, (xw / X_LIMIT) * 100) + '%';
+    thBar.style.width = Math.min(100, (tl / TH_LIMIT) * 100) + '%';
+
+    xWrap.classList.toggle('over',  xw > X_LIMIT);
+    thWrap.classList.toggle('over', tl > TH_LIMIT);
+  }
+  ta.addEventListener('input', update);
+
+  // ===== ステータス表示 =====
+  let statusTimer;
+  function flash(msg){
+    statusEl.textContent = msg;
+    statusEl.classList.add('show');
+    clearTimeout(statusTimer);
+    statusTimer = setTimeout(()=> statusEl.classList.remove('show'), 1600);
+  }
+
+  // ===== intent URLで開く =====
+  function openIntent(kind){
+    const t = ta.value.trim();
+    if(!t){ flash('本文が空です'); ta.focus(); return; }
+    const enc = encodeURIComponent(t);
+    const url = kind === 'x'
+      ? 'https://twitter.com/intent/tweet?text=' + enc
+      : 'https://www.threads.net/intent/post?text=' + enc;
+    window.open(url, '_blank', 'noopener');
+  }
+  document.getElementById('btn-x').addEventListener('click',  ()=> openIntent('x'));
+  document.getElementById('btn-th').addEventListener('click', ()=> openIntent('th'));
+
+  // ===== コピー（https環境必須／フォールバック付き） =====
+  const copyBtn = document.getElementById('btn-copy');
+  async function copyText(){
+    const t = ta.value.trim();
+    if(!t){ flash('本文が空です'); ta.focus(); return; }
+    try{
+      await navigator.clipboard.writeText(t);
+      copied();
+    }catch(e){
+      // 旧方式フォールバック
+      try{
+        ta.select();
+        document.execCommand('copy');
+        window.getSelection().removeAllRanges();
+        copied();
+      }catch(e2){
+        flash('コピーに失敗しました（httpsで開いているか確認）');
+      }
+    }
+  }
+  function copied(){
+    copyBtn.textContent = 'コピーしました ✓';
+    copyBtn.classList.add('copied');
+    flash('Substack用にコピーしました');
+    setTimeout(()=>{
+      copyBtn.textContent = 'Substack用にコピー';
+      copyBtn.classList.remove('copied');
+    }, 1600);
+  }
+  copyBtn.addEventListener('click', copyText);
+
+  // ===== クリア =====
+  document.getElementById('btn-clear').addEventListener('click', ()=>{
+    ta.value = '';
+    update();
+    ta.focus();
+  });
+
+  // 初期化
+  update();
+
+  // ===== テンプレート機能 =====
+  const STORAGE_KEY = 'crosspost_templates';
+
+  function loadTemplates(){
+    try{
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if(!raw) return [];
+      const parsed = JSON.parse(raw);
+      return Array.isArray(parsed) ? parsed : [];
+    }catch{ return []; }
+  }
+
+  function saveTemplates(list){
+    try{
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
+      return true;
+    }catch{ return false; }
+  }
+
+  function renderTemplates(){
+    const templates = loadTemplates();
+    const listEl = document.getElementById('tmpl-list');
+    const badge  = document.getElementById('tmpl-badge');
+    badge.textContent = templates.length;
+    listEl.replaceChildren();
+
+    if(templates.length === 0){
+      const empty = document.createElement('p');
+      empty.className = 'tmpl-empty';
+      empty.textContent = '保存済みテンプレートはありません';
+      listEl.appendChild(empty);
+      return;
+    }
+
+    [...templates].sort((a,b) => b.savedAt - a.savedAt).forEach(tmpl => listEl.appendChild(buildItem(tmpl)));
+  }
+
+  function buildItem(tmpl){
+    const item = document.createElement('div');
+    item.className = 'tmpl-item';
+
+    const nameEl = document.createElement('div');
+    nameEl.className = 'tmpl-item-name';
+    nameEl.textContent = tmpl.name;
+
+    const preview = document.createElement('div');
+    preview.className = 'tmpl-item-preview';
+    preview.textContent = tmpl.body.replace(/\n/g, ' ');
+
+    const btns = document.createElement('div');
+    btns.className = 'tmpl-item-btns';
+
+    const loadBtn = document.createElement('button');
+    loadBtn.className = 'btn-tmpl-load';
+    loadBtn.type = 'button';
+    loadBtn.textContent = '読み込む';
+    loadBtn.addEventListener('click', () => handleLoad(tmpl, item));
+
+    const delBtn = document.createElement('button');
+    delBtn.className = 'btn-tmpl-delete';
+    delBtn.type = 'button';
+    delBtn.textContent = '削除';
+    delBtn.addEventListener('click', () => showConfirm(item, '削除しますか？', '削除する', () => {
+      const ok = saveTemplates(loadTemplates().filter(t => t.id !== tmpl.id));
+      if(ok){ renderTemplates(); flash('テンプレートを削除しました'); }
+      else  { showTmplMsg('削除できませんでした', 'err'); }
+    }));
+
+    btns.appendChild(loadBtn);
+    btns.appendChild(delBtn);
+    item.appendChild(nameEl);
+    item.appendChild(preview);
+    item.appendChild(btns);
+    return item;
+  }
+
+  function handleLoad(tmpl, item){
+    if(!ta.value.trim()){
+      ta.value = tmpl.body;
+      update();
+      flash('テンプレートを読み込みました');
+    } else {
+      showConfirm(item, '現在の内容を上書きしますか？', '上書きする', () => {
+        ta.value = tmpl.body;
+        update();
+        flash('テンプレートを読み込みました');
+      });
+    }
+  }
+
+  function showConfirm(parentEl, question, yesLabel, onYes){
+    parentEl.querySelector('.tmpl-confirm')?.remove();
+
+    const wrap = document.createElement('div');
+    wrap.className = 'tmpl-confirm';
+
+    const msg = document.createElement('span');
+    msg.textContent = question;
+
+    const btnWrap = document.createElement('div');
+    btnWrap.className = 'tmpl-confirm-btns';
+
+    const yesBtn = document.createElement('button');
+    yesBtn.className = 'btn-confirm-yes';
+    yesBtn.type = 'button';
+    yesBtn.textContent = yesLabel;
+    yesBtn.addEventListener('click', () => { wrap.remove(); onYes(); });
+
+    const noBtn = document.createElement('button');
+    noBtn.className = 'btn-confirm-no';
+    noBtn.type = 'button';
+    noBtn.textContent = 'キャンセル';
+    noBtn.addEventListener('click', () => wrap.remove());
+
+    btnWrap.appendChild(yesBtn);
+    btnWrap.appendChild(noBtn);
+    wrap.appendChild(msg);
+    wrap.appendChild(btnWrap);
+    parentEl.appendChild(wrap);
+  }
+
+  let tmplMsgTimer;
+  function showTmplMsg(msg, type){
+    const el = document.getElementById('tmpl-msg');
+    el.textContent = msg;
+    el.className = 'tmpl-msg ' + type;
+    clearTimeout(tmplMsgTimer);
+    tmplMsgTimer = setTimeout(() => { el.textContent = ''; el.className = 'tmpl-msg'; }, 2400);
+  }
+
+  function handleSave(){
+    const nameInput = document.getElementById('tmpl-name');
+    const name = nameInput.value.trim();
+    const body = ta.value.trim();
+
+    if(!name){ showTmplMsg('名前を入力してください', 'err'); nameInput.focus(); return; }
+    if(!body){ showTmplMsg('本文が空です', 'err'); ta.focus(); return; }
+
+    const templates = loadTemplates();
+    const idx = templates.findIndex(t => t.name === name);
+    let next;
+    if(idx >= 0){
+      next = [...templates];
+      next[idx] = { ...next[idx], body, savedAt: Date.now() };
+    } else {
+      next = [...templates, { id: crypto.randomUUID(), name, body, savedAt: Date.now() }];
+    }
+
+    const ok = saveTemplates(next);
+    if(ok){
+      renderTemplates();
+      nameInput.value = '';
+      showTmplMsg(idx >= 0 ? '上書き保存しました' : '保存しました', 'ok');
+      if(document.getElementById('tmpl-list').hidden) toggleList();
+    } else {
+      showTmplMsg('保存できませんでした', 'err');
+    }
+  }
+
+  function toggleList(){
+    const list  = document.getElementById('tmpl-list');
+    const arrow = document.getElementById('tmpl-arrow');
+    list.hidden = !list.hidden;
+    arrow.classList.toggle('open', !list.hidden);
+  }
+
+  document.getElementById('btn-tmpl-save').addEventListener('click', handleSave);
+  document.getElementById('tmpl-name').addEventListener('keydown', e => { if(e.key === 'Enter') handleSave(); });
+  document.getElementById('btn-tmpl-toggle').addEventListener('click', toggleList);
+
+  renderTemplates();
+</script>
+</body>
+</html>
