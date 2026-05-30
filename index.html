@@ -505,6 +505,7 @@
     copyBtn.textContent = 'コピーしました ✓';
     copyBtn.classList.add('copied');
     flash('Substack用にコピーしました');
+    window.open('https://substack.com/notes', '_blank', 'noopener');
     setTimeout(()=>{
       copyBtn.textContent = 'Substack用にコピー';
       copyBtn.classList.remove('copied');
