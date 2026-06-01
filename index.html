@@ -255,6 +255,8 @@
     overflow:hidden;
     text-overflow:ellipsis;
     white-space:nowrap;
+    min-width:0;
+    flex:1;
   }
 
   .tmpl-item-preview{
@@ -303,6 +305,174 @@
     padding:6px 11px;
     border-radius:8px;
   }
+
+  .btn-tmpl-edit{ font-size:12px; padding:7px 12px; border-radius:8px; }
+
+  .tmpl-edit-form{
+    margin-top:10px;
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+  }
+
+  .tmpl-edit-name{
+    background:var(--surface);
+    border:1px solid var(--border-hi);
+    border-radius:8px;
+    padding:9px 11px;
+    color:var(--text);
+    font-family:inherit;
+    font-size:13px;
+    outline:none;
+    transition:border-color .2s;
+    width:100%;
+  }
+  .tmpl-edit-name:focus{ border-color:var(--accent); }
+
+  .tmpl-edit-body{
+    background:var(--surface);
+    border:1px solid var(--border-hi);
+    border-radius:8px;
+    padding:9px 11px;
+    color:var(--text);
+    font-family:inherit;
+    font-size:13px;
+    line-height:1.6;
+    outline:none;
+    resize:vertical;
+    min-height:100px;
+    width:100%;
+    transition:border-color .2s;
+  }
+  .tmpl-edit-body:focus{ border-color:var(--accent); }
+
+  .tmpl-edit-btns{ display:flex; gap:6px; }
+
+  .btn-edit-save{
+    font-size:12px;
+    padding:7px 12px;
+    border-radius:8px;
+    color:var(--accent);
+    border-color:var(--accent-dim);
+  }
+  .btn-edit-save:hover{ background:rgba(232,176,75,.08); color:var(--accent); border-color:var(--accent); }
+
+  .btn-edit-cancel{
+    font-size:12px;
+    padding:7px 12px;
+    border-radius:8px;
+  }
+
+  /* ===== ドラッグ＆ドロップ ===== */
+  .tmpl-drag-handle{
+    cursor:grab;
+    color:var(--faint);
+    font-size:14px;
+    padding-right:8px;
+    user-select:none;
+    flex-shrink:0;
+    line-height:1.4;
+  }
+  .tmpl-drag-handle:active{ cursor:grabbing; }
+  .tmpl-item.dragging{ opacity:.3; }
+  .tmpl-item.drag-over-top{
+    box-shadow:0 -2px 0 var(--accent), inset 0 0 0 1px var(--border);
+  }
+  .tmpl-item.drag-over-bottom{
+    box-shadow:0 2px 0 var(--accent), inset 0 0 0 1px var(--border);
+  }
+
+  /* ===== ピン止め ===== */
+  .tmpl-item-header{
+    display:flex;
+    align-items:flex-start;
+    margin-bottom:4px;
+  }
+
+  .btn-tmpl-pin{
+    font-size:11px;
+    padding:2px 7px;
+    border-radius:6px;
+    border:1px solid transparent;
+    background:transparent;
+    color:var(--faint);
+    margin-left:auto;
+    flex-shrink:0;
+    line-height:1.4;
+  }
+  .btn-tmpl-pin:hover{ color:var(--accent); border-color:transparent; background:transparent; }
+  .btn-tmpl-pin.pinned{ color:var(--accent); border-color:var(--accent-dim); background:rgba(232,176,75,.08); }
+  .btn-tmpl-pin.pinned:hover{ color:var(--danger); border-color:var(--danger); background:transparent; }
+
+  .tmpl-item.pinned-item{ border-color:var(--accent-dim); }
+
+  .tmpl-section-label{
+    font-size:10px;
+    color:var(--faint);
+    letter-spacing:.5px;
+    padding:4px 2px 2px;
+    display:flex;
+    align-items:center;
+    gap:8px;
+  }
+  .tmpl-section-label::after{
+    content:'';
+    flex:1;
+    height:1px;
+    background:var(--border);
+  }
+
+  /* ===== エクスポート／インポート ===== */
+  .tmpl-transfer-row{
+    display:flex;
+    gap:8px;
+  }
+
+  .btn-transfer{
+    flex:1;
+    font-size:12px;
+    padding:9px 12px;
+    color:var(--muted);
+    background:transparent;
+    border:1px solid var(--border);
+    border-radius:11px;
+    text-align:center;
+  }
+  .btn-transfer:hover{ color:var(--text); border-color:var(--border-hi); }
+
+  .tmpl-import-choice{
+    background:var(--surface-2);
+    border:1px solid var(--border-hi);
+    border-radius:11px;
+    padding:12px 14px;
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+  }
+
+  .tmpl-import-msg{ font-size:12px; color:var(--muted); line-height:1.6; }
+
+  .tmpl-import-btns{ display:flex; gap:6px; flex-wrap:wrap; }
+
+  .btn-import-add{
+    font-size:12px;
+    padding:7px 12px;
+    border-radius:8px;
+    color:var(--accent);
+    border-color:var(--accent-dim);
+  }
+  .btn-import-add:hover{ background:rgba(232,176,75,.08); color:var(--accent); border-color:var(--accent); }
+
+  .btn-import-replace{
+    font-size:12px;
+    padding:7px 12px;
+    border-radius:8px;
+    color:var(--danger);
+    border-color:var(--danger);
+  }
+  .btn-import-replace:hover{ background:rgba(224,105,60,.1); }
+
+  .btn-import-cancel{ font-size:12px; padding:7px 12px; border-radius:8px; }
 
   /* ===== 注意書き ===== */
   .foot{
@@ -385,6 +555,11 @@
         <button class="btn-tmpl-save" id="btn-tmpl-save" type="button">保存</button>
       </div>
       <div class="tmpl-msg" id="tmpl-msg"></div>
+      <div class="tmpl-transfer-row">
+        <button class="btn-transfer" id="btn-export" type="button">エクスポート</button>
+        <button class="btn-transfer" id="btn-import" type="button">インポート</button>
+        <input type="file" id="import-input" hidden>
+      </div>
       <button class="btn-tmpl-toggle" id="btn-tmpl-toggle" type="button">
         テンプレート一覧<span class="tmpl-badge" id="tmpl-badge">0</span><span class="tmpl-arrow" id="tmpl-arrow">▼</span>
       </button>
@@ -486,6 +661,7 @@
   async function copyText(){
     const t = ta.value.trim();
     if(!t){ flash('本文が空です'); ta.focus(); return; }
+    window.open('https://substack.com/notes', '_blank', 'noopener');
     try{
       await navigator.clipboard.writeText(t);
       copied();
@@ -505,7 +681,6 @@
     copyBtn.textContent = 'コピーしました ✓';
     copyBtn.classList.add('copied');
     flash('Substack用にコピーしました');
-    window.open('https://substack.com/notes', '_blank', 'noopener');
     setTimeout(()=>{
       copyBtn.textContent = 'Substack用にコピー';
       copyBtn.classList.remove('copied');
@@ -557,16 +732,71 @@
       return;
     }
 
-    [...templates].sort((a,b) => b.savedAt - a.savedAt).forEach(tmpl => listEl.appendChild(buildItem(tmpl)));
+    const pinned   = templates.filter(t => t.pinned);
+    const unpinned = templates.filter(t => !t.pinned);
+
+    if(pinned.length > 0){
+      listEl.appendChild(makeSection('ピン留め'));
+      pinned.forEach(t => listEl.appendChild(buildItem(t)));
+    }
+    if(unpinned.length > 0){
+      if(pinned.length > 0) listEl.appendChild(makeSection('その他'));
+      unpinned.forEach(t => listEl.appendChild(buildItem(t)));
+    }
+  }
+
+  function makeSection(label){
+    const el = document.createElement('div');
+    el.className = 'tmpl-section-label';
+    el.textContent = label;
+    return el;
   }
 
   function buildItem(tmpl){
     const item = document.createElement('div');
-    item.className = 'tmpl-item';
+    item.className = 'tmpl-item' + (tmpl.pinned ? ' pinned-item' : '');
+
+    // ドラッグ＆ドロップ（ハンドルからのみ開始）
+    item.addEventListener('dragover',  e => onDragOver(e, tmpl.id, item));
+    item.addEventListener('dragleave', e => onDragLeave(e, item));
+    item.addEventListener('drop',      e => onDrop(e, tmpl, item));
+
+    // ヘッダー行: [ハンドル] [名前] [ピンボタン]
+    const header = document.createElement('div');
+    header.className = 'tmpl-item-header';
+
+    const grip = document.createElement('span');
+    grip.className = 'tmpl-drag-handle';
+    grip.textContent = '⠿';
+    grip.setAttribute('aria-hidden', 'true');
+    grip.draggable = true;
+    grip.addEventListener('dragstart', e => {
+      dragSrcId = tmpl.id;
+      e.dataTransfer.effectAllowed = 'move';
+      e.dataTransfer.setDragImage(item, 10, 10);
+      setTimeout(() => item.classList.add('dragging'), 0);
+    });
+    grip.addEventListener('dragend', e => {
+      item.classList.remove('dragging');
+      document.querySelectorAll('.tmpl-item').forEach(el =>
+        el.classList.remove('drag-over-top', 'drag-over-bottom'));
+      dragSrcId = null;
+    });
 
     const nameEl = document.createElement('div');
     nameEl.className = 'tmpl-item-name';
     nameEl.textContent = tmpl.name;
+
+    const pinBtn = document.createElement('button');
+    pinBtn.className = 'btn-tmpl-pin' + (tmpl.pinned ? ' pinned' : '');
+    pinBtn.type = 'button';
+    pinBtn.title = tmpl.pinned ? '固定を解除' : 'トップに固定';
+    pinBtn.textContent = '▲';
+    pinBtn.addEventListener('click', () => togglePin(tmpl.id));
+
+    header.appendChild(grip);
+    header.appendChild(nameEl);
+    header.appendChild(pinBtn);
 
     const preview = document.createElement('div');
     preview.className = 'tmpl-item-preview';
@@ -581,6 +811,12 @@
     loadBtn.textContent = '読み込む';
     loadBtn.addEventListener('click', () => handleLoad(tmpl, item));
 
+    const editBtn = document.createElement('button');
+    editBtn.className = 'btn-tmpl-edit';
+    editBtn.type = 'button';
+    editBtn.textContent = '編集';
+    editBtn.addEventListener('click', () => toggleEditForm(item, tmpl));
+
     const delBtn = document.createElement('button');
     delBtn.className = 'btn-tmpl-delete';
     delBtn.type = 'button';
@@ -592,11 +828,73 @@
     }));
 
     btns.appendChild(loadBtn);
+    btns.appendChild(editBtn);
     btns.appendChild(delBtn);
-    item.appendChild(nameEl);
+    item.appendChild(header);
     item.appendChild(preview);
     item.appendChild(btns);
     return item;
+  }
+
+  // ===== ピン止め =====
+  function togglePin(id){
+    const templates = loadTemplates();
+    const idx = templates.findIndex(t => t.id === id);
+    const wasP = templates[idx].pinned;
+    const updated = { ...templates[idx], pinned: !wasP };
+    const others  = templates.filter(t => t.id !== id);
+
+    let next;
+    if(!wasP){
+      // ピン→配列先頭へ
+      next = [updated, ...others];
+    } else {
+      // 解除→ピン済みの直後へ
+      const lastPinIdx = others.reduce((acc, t, i) => t.pinned ? i : acc, -1);
+      next = [...others];
+      next.splice(lastPinIdx + 1, 0, updated);
+    }
+    saveTemplates(next);
+    renderTemplates();
+    flash(wasP ? '固定を解除しました' : 'トップに固定しました');
+  }
+
+  // ===== ドラッグ＆ドロップ =====
+  let dragSrcId = null;
+
+  function onDragOver(e, targetId, el){
+    if(!dragSrcId || dragSrcId === targetId) return;
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    const rect = el.getBoundingClientRect();
+    const mid  = rect.top + rect.height / 2;
+    document.querySelectorAll('.tmpl-item').forEach(x =>
+      x.classList.remove('drag-over-top', 'drag-over-bottom'));
+    el.classList.add(e.clientY < mid ? 'drag-over-top' : 'drag-over-bottom');
+  }
+
+  function onDragLeave(e, el){
+    if(!el.contains(e.relatedTarget))
+      el.classList.remove('drag-over-top', 'drag-over-bottom');
+  }
+
+  function onDrop(e, targetTmpl, el){
+    e.preventDefault();
+    if(!dragSrcId || dragSrcId === targetTmpl.id) return;
+    el.classList.remove('drag-over-top', 'drag-over-bottom');
+
+    const rect   = el.getBoundingClientRect();
+    const before = e.clientY < rect.top + rect.height / 2;
+
+    const templates = loadTemplates();
+    // ドロップ先のピン状態を引き継ぐ（区間をまたぐとピン状態が変わる）
+    const srcItem = { ...templates.find(t => t.id === dragSrcId), pinned: targetTmpl.pinned };
+    const rest    = templates.filter(t => t.id !== dragSrcId);
+    const ti      = rest.findIndex(t => t.id === targetTmpl.id);
+    rest.splice(before ? ti : ti + 1, 0, srcItem);
+    saveTemplates(rest);
+    renderTemplates();
+    dragSrcId = null;
   }
 
   function handleLoad(tmpl, item){
@@ -611,6 +909,71 @@
         flash('テンプレートを読み込みました');
       });
     }
+  }
+
+  function toggleEditForm(item, tmpl){
+    const existing = item.querySelector('.tmpl-edit-form');
+    if(existing){ existing.remove(); return; }
+
+    item.querySelector('.tmpl-confirm')?.remove();
+
+    const form = document.createElement('div');
+    form.className = 'tmpl-edit-form';
+
+    const nameInput = document.createElement('input');
+    nameInput.type = 'text';
+    nameInput.className = 'tmpl-edit-name';
+    nameInput.value = tmpl.name;
+    nameInput.maxLength = 50;
+    nameInput.placeholder = 'テンプレート名…';
+
+    const bodyTA = document.createElement('textarea');
+    bodyTA.className = 'tmpl-edit-body';
+    bodyTA.value = tmpl.body;
+    bodyTA.placeholder = '本文…';
+
+    const editBtns = document.createElement('div');
+    editBtns.className = 'tmpl-edit-btns';
+
+    const saveBtn = document.createElement('button');
+    saveBtn.className = 'btn-edit-save';
+    saveBtn.type = 'button';
+    saveBtn.textContent = '保存';
+    saveBtn.addEventListener('click', () => {
+      const newName = nameInput.value.trim();
+      const newBody = bodyTA.value.trim();
+      if(!newName){ nameInput.focus(); flash('名前を入力してください'); return; }
+      if(!newBody){ bodyTA.focus(); flash('本文が空です'); return; }
+
+      const templates = loadTemplates();
+      const conflict = templates.find(t => t.name === newName && t.id !== tmpl.id);
+      if(conflict){ flash('その名前はすでに使用中です'); nameInput.focus(); return; }
+
+      const next = templates.map(t => t.id === tmpl.id
+        ? { ...t, name: newName, body: newBody, savedAt: Date.now() }
+        : t
+      );
+      if(saveTemplates(next)){
+        renderTemplates();
+        flash('テンプレートを更新しました');
+      } else {
+        flash('保存できませんでした');
+      }
+    });
+
+    const cancelBtn = document.createElement('button');
+    cancelBtn.className = 'btn-edit-cancel';
+    cancelBtn.type = 'button';
+    cancelBtn.textContent = 'キャンセル';
+    cancelBtn.addEventListener('click', () => form.remove());
+
+    editBtns.appendChild(saveBtn);
+    editBtns.appendChild(cancelBtn);
+    form.appendChild(nameInput);
+    form.appendChild(bodyTA);
+    form.appendChild(editBtns);
+    item.appendChild(form);
+    nameInput.focus();
   }
 
   function showConfirm(parentEl, question, yesLabel, onYes){
@@ -668,7 +1031,7 @@
       next = [...templates];
       next[idx] = { ...next[idx], body, savedAt: Date.now() };
     } else {
-      next = [...templates, { id: crypto.randomUUID(), name, body, savedAt: Date.now() }];
+      next = [...templates, { id: crypto.randomUUID(), name, body, savedAt: Date.now(), pinned: false }];
     }
 
     const ok = saveTemplates(next);
@@ -692,6 +1055,117 @@
   document.getElementById('btn-tmpl-save').addEventListener('click', handleSave);
   document.getElementById('tmpl-name').addEventListener('keydown', e => { if(e.key === 'Enter') handleSave(); });
   document.getElementById('btn-tmpl-toggle').addEventListener('click', toggleList);
+
+  // ===== エクスポート =====
+  function handleExport(){
+    const templates = loadTemplates();
+    if(templates.length === 0){ flash('テンプレートがありません'); return; }
+    const blob = new Blob([JSON.stringify(templates, null, 2)], { type: 'application/json' });
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement('a');
+    a.href     = url;
+    a.download = 'crosspost-templates.json';
+    a.click();
+    URL.revokeObjectURL(url);
+    flash('エクスポートしました');
+  }
+
+  // ===== インポート =====
+  const importInput = document.getElementById('import-input');
+
+  function handleImportFile(file){
+    // accept属性なし → JS側で拡張子チェック
+    if(!file.name.toLowerCase().endsWith('.json')){
+      flash('JSONファイルを選択してください');
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = ev => {
+      let data;
+      try{
+        data = JSON.parse(ev.target.result);
+        if(!Array.isArray(data)) throw new Error();
+        if(!data.every(t => t.id && t.name && typeof t.body === 'string')) throw new Error();
+      }catch{
+        flash('ファイルの形式が正しくありません');
+        return;
+      }
+      const existing = loadTemplates();
+      if(existing.length > 0){
+        showImportChoice(data);
+      } else {
+        doImport(data, 'replace');
+      }
+    };
+    reader.readAsText(file);
+  }
+
+  function showImportChoice(incoming){
+    document.querySelector('.tmpl-import-choice')?.remove();
+
+    const wrap = document.createElement('div');
+    wrap.className = 'tmpl-import-choice';
+
+    const msg = document.createElement('div');
+    msg.className = 'tmpl-import-msg';
+    msg.textContent = incoming.length + '件を読み込みます。既存テンプレートをどうしますか？';
+
+    const btnWrap = document.createElement('div');
+    btnWrap.className = 'tmpl-import-btns';
+
+    const addBtn = document.createElement('button');
+    addBtn.type = 'button';
+    addBtn.className = 'btn-import-add';
+    addBtn.textContent = '追加（既存を残す）';
+    addBtn.addEventListener('click', () => { wrap.remove(); doImport(incoming, 'merge'); });
+
+    const replaceBtn = document.createElement('button');
+    replaceBtn.type = 'button';
+    replaceBtn.className = 'btn-import-replace';
+    replaceBtn.textContent = '上書き（既存を削除）';
+    replaceBtn.addEventListener('click', () => { wrap.remove(); doImport(incoming, 'replace'); });
+
+    const cancelBtn = document.createElement('button');
+    cancelBtn.type = 'button';
+    cancelBtn.className = 'btn-import-cancel';
+    cancelBtn.textContent = 'キャンセル';
+    cancelBtn.addEventListener('click', () => wrap.remove());
+
+    btnWrap.appendChild(addBtn);
+    btnWrap.appendChild(replaceBtn);
+    btnWrap.appendChild(cancelBtn);
+    wrap.appendChild(msg);
+    wrap.appendChild(btnWrap);
+
+    document.querySelector('.tmpl-transfer-row').insertAdjacentElement('afterend', wrap);
+  }
+
+  function doImport(incoming, mode){
+    let next;
+    if(mode === 'replace'){
+      next = incoming;
+    } else {
+      const existing = loadTemplates();
+      const existingIds = new Set(existing.map(t => t.id));
+      const newItems = incoming.filter(t => !existingIds.has(t.id));
+      next = [...existing, ...newItems];
+    }
+    if(saveTemplates(next)){
+      renderTemplates();
+      if(document.getElementById('tmpl-list').hidden) toggleList();
+      flash(next.length + '件のテンプレートを読み込みました');
+    } else {
+      flash('インポートに失敗しました');
+    }
+  }
+
+  document.getElementById('btn-export').addEventListener('click', handleExport);
+  document.getElementById('btn-import').addEventListener('click', () => importInput.click());
+  importInput.addEventListener('change', e => {
+    const file = e.target.files[0];
+    importInput.value = '';
+    if(file) handleImportFile(file);
+  });
 
   renderTemplates();
 </script>
